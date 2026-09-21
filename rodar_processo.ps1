@@ -48,6 +48,11 @@ Set-Location $PSScriptRoot
 
 New-Item -ItemType Directory -Force -Path "dados_saida" | Out-Null
 
+$Python = Join-Path $PSScriptRoot ".venv\Scripts\python.exe"
+if (-not (Test-Path $Python)) {
+    $Python = "python"
+}
+
 # Evita mojibake no console ao exibir logs com acentuação.
 chcp 65001 | Out-Null
 $env:PYTHONIOENCODING = "utf-8"
@@ -70,8 +75,8 @@ if ($Belvitur) {
     $argumentos += @("--belvitur", $Belvitur, "--saida-belvitur", $SaidaBelvitur)
 }
 
-Write-Host "Rodando: python $($argumentos -join ' ')" -ForegroundColor Cyan
-python @argumentos
+Write-Host "Rodando: $Python $($argumentos -join ' ')" -ForegroundColor Cyan
+& $Python @argumentos
 $codigoSaida = $LASTEXITCODE
 
 if ($codigoSaida -eq 0) {
