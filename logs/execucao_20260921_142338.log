@@ -1,0 +1,46 @@
+2026-09-21 14:23:38 | INFO     | ================================================================================
+2026-09-21 14:23:38 | INFO     | AUTOMAÇÃO DE APROVADORES SAP
+2026-09-21 14:23:38 | INFO     | ================================================================================
+2026-09-21 14:23:38 | INFO     | Validando arquivos de entrada...
+2026-09-21 14:23:38 | INFO     | Carregando base SAP: C:\Users\julia.neris\Downloads\base sap.xlsx
+2026-09-21 14:25:06 | INFO     | Carregando base de-para: C:\Users\julia.neris\Downloads\de para CC - Aprovadores (1).xlsx
+2026-09-21 14:25:06 | INFO     | Identificando colunas da base SAP...
+2026-09-21 14:25:06 | INFO     | Centro de Custo: 'Centro custo' | Descrição: 'Descrição Centro de Custo' | Níveis de aprovador detectados: N1:'Nome Completo', SUB:'Nome Completo.1', N2:'Nome Completo.2', N3:'Nome Completo.3', N4:'Nome Completo.4', N5:'Nome Completo.5', N6:'Nome Completo.6'
+2026-09-21 14:25:06 | INFO     | Identificando colunas da base de-para...
+2026-09-21 14:25:06 | INFO     | ID SAP: 'SAP ID' | Cargo: 'CARGO - *ATUALIZAR' | Gestor: 'GESTOR DIRETO' | CPF: 'CPF'
+2026-09-21 14:25:06 | INFO     | Validando qualidade dos dados...
+2026-09-21 14:25:06 | INFO     | Base SAP: 91,407 linhas, 34 colunas.
+2026-09-21 14:25:06 | INFO     | Nível N1   (Nome Completo): 1,403 vazios (1.5%).
+2026-09-21 14:25:07 | INFO     | Nível SUB  (Nome Completo.1): 90,761 vazios (99.3%).
+2026-09-21 14:25:07 | INFO     | Nível N2   (Nome Completo.2): 102 vazios (0.1%).
+2026-09-21 14:25:07 | INFO     | Nível N3   (Nome Completo.3): 102 vazios (0.1%).
+2026-09-21 14:25:07 | INFO     | Nível N4   (Nome Completo.4): 102 vazios (0.1%).
+2026-09-21 14:25:07 | INFO     | Nível N5   (Nome Completo.5): 109 vazios (0.1%).
+2026-09-21 14:25:07 | INFO     | Nível N6   (Nome Completo.6): 102 vazios (0.1%).
+2026-09-21 14:25:22 | WARNING  | 102 linha(s) sem NENHUM candidato a aprovador preenchido (todos os níveis vazios).
+2026-09-21 14:25:22 | INFO     | Base de-para: 503 linhas, 7 colunas.
+2026-09-21 14:25:22 | INFO     | Construindo índice do de-para (Tier 0)...
+2026-09-21 14:25:22 | WARNING  | Nenhuma base RH informada -- candidatos com ID SAP não cadastrado no de-para serão reportados como não encontrados, sem tentativa de matching por nome.
+2026-09-21 14:25:22 | INFO     | Iniciando processamento de 91,407 linhas da base SAP (níveis: N1, SUB, N2, N3)...
+2026-09-21 14:25:26 | INFO     | Processados 5,000/91,407 (5.5%).
+2026-09-21 14:25:30 | INFO     | Processados 10,000/91,407 (10.9%).
+2026-09-21 14:25:33 | INFO     | Processados 15,000/91,407 (16.4%).
+2026-09-21 14:25:36 | INFO     | Processados 20,000/91,407 (21.9%).
+2026-09-21 14:25:40 | INFO     | Processados 25,000/91,407 (27.4%).
+2026-09-21 14:25:43 | INFO     | Processados 30,000/91,407 (32.8%).
+2026-09-21 14:25:47 | INFO     | Processados 35,000/91,407 (38.3%).
+2026-09-21 14:25:50 | INFO     | Processados 40,000/91,407 (43.8%).
+2026-09-21 14:25:53 | INFO     | Processados 45,000/91,407 (49.2%).
+2026-09-21 14:25:57 | INFO     | Processados 50,000/91,407 (54.7%).
+2026-09-21 14:26:01 | INFO     | Processados 55,000/91,407 (60.2%).
+2026-09-21 14:26:04 | INFO     | Processados 60,000/91,407 (65.6%).
+2026-09-21 14:26:08 | INFO     | Processados 65,000/91,407 (71.1%).
+2026-09-21 14:26:11 | INFO     | Processados 70,000/91,407 (76.6%).
+2026-09-21 14:26:15 | INFO     | Processados 75,000/91,407 (82.1%).
+2026-09-21 14:26:19 | INFO     | Processados 80,000/91,407 (87.5%).
+2026-09-21 14:26:23 | INFO     | Processados 85,000/91,407 (93.0%).
+2026-09-21 14:26:26 | INFO     | Processados 90,000/91,407 (98.5%).
+2026-09-21 14:26:27 | INFO     | Processados 91,407/91,407 (100.0%).
+2026-09-21 14:26:29 | INFO     | Processamento concluído: 91,305/91,407 Centros de Custo com aprovador definido (99.9%).
+2026-09-21 14:26:29 | INFO     | Gerando Excel de auditoria: C:\Users\julia.neris\Documents\novo_aprovadores\dados_saida\teste_auditoria2.xlsx
+2026-09-21 14:29:54 | INFO     | Concluído em 376.2 segundos.
