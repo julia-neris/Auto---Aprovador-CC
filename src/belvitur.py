@@ -14,8 +14,8 @@ atualizada com duas novas colunas:
         nenhum aprovador elegível foi encontrado.
 
     AÇÃO
-        - vazia (`config.Acao.SEM_ACAO`): aprovador calculado é o
-          mesmo que já está na planilha da Belvitur -- nada a fazer;
+        - `config.Acao.MANTER`: aprovador calculado é o mesmo que já
+          está na planilha da Belvitur -- nada a alterar;
         - `config.Acao.ATUALIZAR`: aprovador calculado é diferente do
           que está cadastrado -- pede atualização;
         - `config.Acao.INATIVAR`: nenhum aprovador elegível foi
@@ -23,8 +23,7 @@ atualizada com duas novas colunas:
 
 Além da planilha principal (todas as linhas, na ordem original da
 Belvitur), é gerada a aba "ATUALIZAR": um subconjunto apenas com as
-linhas que exigem alguma ação, já que só essas precisam de revisão
-humana antes do envio.
+linhas que exigem atualização ou inativação.
 """
 
 from __future__ import annotations
@@ -105,7 +104,7 @@ def reconciliar_com_belvitur(
         if linha_resultado is None:
             centros_sem_resultado += 1
             aprovadores_sap.append("")
-            acoes.append("")
+            acoes.append(Acao.REVISAR)
             aprovadores_do_aprovador.append(None)
             continue
 
@@ -114,18 +113,14 @@ def reconciliar_com_belvitur(
             aprovadores_sap.append(novo_aprovador)
 
             if normalizar_nome(novo_aprovador) == normalizar_nome(aprovador_atual):
-                acoes.append(Acao.SEM_ACAO)
+                acoes.append(Acao.MANTER)
                 aprovadores_do_aprovador.append(None)
             else:
                 acoes.append(Acao.ATUALIZAR)
                 aprovadores_do_aprovador.append(linha_resultado.get("aprovador_gestor"))
         else:
             aprovadores_sap.append(TEXTO_INATIVAR_APROVADOR)
-            if valor_vazio(aprovador_atual):
-                # Já não havia aprovador cadastrado -- nada muda.
-                acoes.append(Acao.SEM_ACAO)
-            else:
-                acoes.append(Acao.INATIVAR)
+            acoes.append(Acao.INATIVAR)
             aprovadores_do_aprovador.append(None)
 
     df_saida[COLUNA_APROVADOR_SAP] = aprovadores_sap
@@ -144,12 +139,15 @@ def reconciliar_com_belvitur(
 
     total_atualizar = (df_saida[COLUNA_ACAO] == Acao.ATUALIZAR).sum()
     total_inativar = (df_saida[COLUNA_ACAO] == Acao.INATIVAR).sum()
+    total_manter = (df_saida[COLUNA_ACAO] == Acao.MANTER).sum()
+    total_revisar = (df_saida[COLUNA_ACAO] == Acao.REVISAR).sum()
     logger.info(
         "Reconciliação com a Belvitur: %s linha(s) para ATUALIZAR, %s "
-        "linha(s) para INATIVAR, %s sem ação necessária.",
+        "para INATIVAR, %s para MANTER, %s para REVISAR.",
         f"{total_atualizar:,}",
         f"{total_inativar:,}",
-        f"{(len(df_saida) - total_atualizar - total_inativar):,}",
+        f"{total_manter:,}",
+        f"{total_revisar:,}",
     )
 
     return df_saida
@@ -160,7 +158,9 @@ def gerar_excel_belvitur(df_saida: pd.DataFrame, caminho_saida: str) -> None:
     linhas (mesma ordem/colunas originais + as três colunas novas) e
     aba "ATUALIZAR" apenas com as linhas que exigem ação."""
 
-    df_atualizar = df_saida[df_saida[COLUNA_ACAO] != Acao.SEM_ACAO].copy()
+    df_atualizar = df_saida[
+        df_saida[COLUNA_ACAO].isin((Acao.ATUALIZAR, Acao.INATIVAR))
+    ].copy()
 
     with pd.ExcelWriter(caminho_saida, engine="openpyxl") as writer:
         df_saida.to_excel(writer, sheet_name="Base Atualizada", index=False)

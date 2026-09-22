@@ -60,13 +60,13 @@ USAR_FILTRO_VALIDADE = False
 # ============================================================
 
 class Acao:
-    """Valores possíveis da coluna de Ação gerada ao comparar o
-    aprovador calculado com o valor já existente na planilha da
-    Belvitur."""
+    """Valores possíveis da coluna de Ação gerada na reconciliação."""
 
-    SEM_ACAO = ""
+    MANTER = "MANTER APROVADOR ATUAL"
+    SEM_ACAO = MANTER
     ATUALIZAR = "ATUALIZAR APROVADOR CENTRO DE CUSTO"
     INATIVAR = "INATIVAR CENTRO DE CUSTO"
+    REVISAR = "REVISAR CENTRO DE CUSTO"
 
 
 # Texto usado na coluna "Aprovador SAP" quando nenhum candidato válido
