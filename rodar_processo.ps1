@@ -2,8 +2,8 @@
     Script de atalho para rodar a automação de aprovadores.
 
     Como usar:
-        1. Ajuste os caminhos na seção "CONFIGURE AQUI" abaixo, apontando
-            para os arquivos do dia (SAP, de-para e referência manual).
+      1. Ajuste os caminhos na seção "CONFIGURE AQUI" abaixo, apontando
+         para os arquivos do dia (SAP, de-para, RH e Belvitur).
       2. Rode este script com:
              .\rodar_processo.ps1
          (se o PowerShell bloquear a execução de scripts, rode antes,
@@ -23,14 +23,12 @@ $Sap = "C:\Users\julia.neris\Downloads\teste - aprovadores 22.09\base sap.xlsx"
 # Planilha "de-para" do SharePoint (ID SAP -> Cargo/Gestor).
 $Depara = "C:\Users\julia.neris\Downloads\teste - aprovadores 22.09\de para CC - Aprovadores - 21;09.xlsx"
 
-# Neste teste usamos somente o de-para; o RH fica desativado.
-$Rh = $null
+# Base de RH completa. É usada como fallback quando o ID SAP não está
+# cadastrado no de-para.
+$Rh = "C:\Users\julia.neris\Downloads\teste - aprovadores 22.09\BASE ATIVOS_DP 21.09 - RH.xlsx"
 
-# Planilha enviada manualmente para a Belvitur, usada como referência.
-$ReferenciaManual = "C:\Users\julia.neris\Documents\belvitur_oficial_manualmente.xlsx"
-
-# Não usamos a reconciliação operacional neste teste.
-$Belvitur = $null
+# Planilha enviada pela Belvitur neste ciclo. Troque este caminho a cada rodada.
+$Belvitur = "C:\Users\julia.neris\Downloads\teste - aprovadores 22.09\base que devolvemos para a belvitur - Copia.xlsx"
 
 # Se quiser atualizar Cargo/Gestor do de-para a partir do RH (via CPF)
 # antes de processar, deixe $true. Requer $Rh preenchido.
@@ -38,7 +36,7 @@ $AtualizarDePara = $null
 
 # Nomes dos Excels de saída (a pasta "dados_saida" é criada se não existir).
 $SaidaAuditoria = "dados_saida\auditoria.xlsx"
-$SaidaComparacao = "dados_saida\comparacao_manual.xlsx"
+$SaidaBelvitur  = "dados_saida\belvitur_atualizada.xlsx"
 
 # ============================================================
 # NÃO PRECISA MEXER DAQUI PARA BAIXO
@@ -75,10 +73,6 @@ if ($Belvitur) {
     $argumentos += @("--belvitur", $Belvitur, "--saida-belvitur", $SaidaBelvitur)
 }
 
-if ($ReferenciaManual) {
-    $argumentos += @("--referencia-manual", $ReferenciaManual, "--saida-comparacao", $SaidaComparacao)
-}
-
 Write-Host "Rodando: $Python $($argumentos -join ' ')" -ForegroundColor Cyan
 & $Python @argumentos
 $codigoSaida = $LASTEXITCODE
@@ -89,9 +83,6 @@ if ($codigoSaida -eq 0) {
     Write-Host "Excel de auditoria: $SaidaAuditoria"
     if ($Belvitur) {
         Write-Host "Excel para a Belvitur: $SaidaBelvitur"
-    }
-    if ($ReferenciaManual) {
-        Write-Host "Comparação manual: $SaidaComparacao"
     }
 } else {
     Write-Host ""
