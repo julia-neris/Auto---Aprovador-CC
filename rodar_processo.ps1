@@ -2,8 +2,8 @@
     Script de atalho para rodar a automação de aprovadores.
 
     Como usar:
-      1. Ajuste os caminhos na seção "CONFIGURE AQUI" abaixo, apontando
-         para os arquivos do dia (SAP, de-para, RH, Belvitur).
+        1. Ajuste os caminhos na seção "CONFIGURE AQUI" abaixo, apontando
+            para os arquivos do dia (SAP, de-para e referência manual).
       2. Rode este script com:
              .\rodar_processo.ps1
          (se o PowerShell bloquear a execução de scripts, rode antes,
@@ -18,27 +18,27 @@
 # ============================================================
 
 # Planilha extraída do SAP (Centro de Custo + candidatos N1..N6).
-$Sap = "C:\Users\julia.neris\Downloads\base sap.xlsx"
+$Sap = "C:\Users\julia.neris\Downloads\teste - aprovadores 22.09\base sap.xlsx"
 
 # Planilha "de-para" do SharePoint (ID SAP -> Cargo/Gestor).
-$Depara = "C:\Users\julia.neris\Downloads\de para CC - Aprovadores.xlsx"
+$Depara = "C:\Users\julia.neris\Downloads\teste - aprovadores 22.09\de para CC - Aprovadores - 21;09.xlsx"
 
-# Base de RH completa. Deixe como $null se não for usar RH nesta rodada
-# (nesse caso, comente/remova também a linha "--atualizar-depara" abaixo).
-$Rh = "C:\Users\julia.neris\Downloads\base rh.xlsx"
+# Neste teste usamos somente o de-para; o RH fica desativado.
+$Rh = $null
 
-# Planilha que a Belvitur enviou AGORA (sempre a versão mais recente
-# deles, nunca a que vocês devolveram da vez anterior). Deixe como
-# $null se quiser gerar só o Excel de auditoria, sem a etapa Belvitur.
-$Belvitur = "C:\Users\julia.neris\Documents\base belvitur mandou.xlsx"
+# Planilha enviada manualmente para a Belvitur, usada como referência.
+$ReferenciaManual = "C:\Users\julia.neris\Documents\belvitur_oficial_manualmente.xlsx"
+
+# Não usamos a reconciliação operacional neste teste.
+$Belvitur = $null
 
 # Se quiser atualizar Cargo/Gestor do de-para a partir do RH (via CPF)
 # antes de processar, deixe $true. Requer $Rh preenchido.
-$AtualizarDePara = $true
+$AtualizarDePara = $null
 
 # Nomes dos Excels de saída (a pasta "dados_saida" é criada se não existir).
 $SaidaAuditoria = "dados_saida\auditoria.xlsx"
-$SaidaBelvitur  = "dados_saida\belvitur_atualizada.xlsx"
+$SaidaComparacao = "dados_saida\comparacao_manual.xlsx"
 
 # ============================================================
 # NÃO PRECISA MEXER DAQUI PARA BAIXO
@@ -75,6 +75,10 @@ if ($Belvitur) {
     $argumentos += @("--belvitur", $Belvitur, "--saida-belvitur", $SaidaBelvitur)
 }
 
+if ($ReferenciaManual) {
+    $argumentos += @("--referencia-manual", $ReferenciaManual, "--saida-comparacao", $SaidaComparacao)
+}
+
 Write-Host "Rodando: $Python $($argumentos -join ' ')" -ForegroundColor Cyan
 & $Python @argumentos
 $codigoSaida = $LASTEXITCODE
@@ -85,6 +89,9 @@ if ($codigoSaida -eq 0) {
     Write-Host "Excel de auditoria: $SaidaAuditoria"
     if ($Belvitur) {
         Write-Host "Excel para a Belvitur: $SaidaBelvitur"
+    }
+    if ($ReferenciaManual) {
+        Write-Host "Comparação manual: $SaidaComparacao"
     }
 } else {
     Write-Host ""

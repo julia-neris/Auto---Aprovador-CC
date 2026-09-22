@@ -38,6 +38,7 @@ if __package__ in (None, ""):
     from src.resolver import ResolvedorAprovador
 else:
     from . import belvitur, column_mapping, config, depara, logging_utils, output, processor, validators
+    from . import comparison
     from .matching import IndiceRH
     from .resolver import ResolvedorAprovador
 
@@ -114,6 +115,16 @@ def _parse_args(argv=None) -> argparse.Namespace:
     parser.add_argument(
         "--sheet-belvitur", default=0, help="Nome ou índice da aba a usar na planilha da Belvitur (padrão: primeira)."
     )
+    parser.add_argument(
+        "--referencia-manual",
+        default=None,
+        help="Planilha manual de referência para comparar aprovadores, sem considerar AÇÃO.",
+    )
+    parser.add_argument(
+        "--saida-comparacao",
+        default="dados_saida/comparacao_manual.xlsx",
+        help="Caminho do relatório da comparação manual.",
+    )
     return parser.parse_args(argv)
 
 
@@ -135,6 +146,9 @@ def executar(argv=None) -> int:
         usar_belvitur = args.belvitur is not None
         if usar_belvitur:
             _validar_arquivo_existe(args.belvitur)
+        usar_referencia_manual = args.referencia_manual is not None
+        if usar_referencia_manual:
+            _validar_arquivo_existe(args.referencia_manual)
 
         logger.info("Carregando base SAP: %s", args.sap)
         df_sap = pd.read_excel(args.sap, sheet_name=args.sheet_sap)
@@ -239,6 +253,21 @@ def executar(argv=None) -> int:
 
             logger.info("Gerando Excel atualizado para a Belvitur: %s", args.saida_belvitur)
             belvitur.gerar_excel_belvitur(df_belvitur_atualizada, args.saida_belvitur)
+
+        if usar_referencia_manual:
+            logger.info("Carregando referência manual: %s", args.referencia_manual)
+            df_referencia = pd.read_excel(
+                args.referencia_manual, sheet_name=args.sheet_belvitur
+            )
+            df_referencia = column_mapping.limpar_nomes_colunas(df_referencia)
+            mapeamento_referencia = column_mapping.detectar_mapeamento_belvitur(
+                df_referencia
+            )
+            df_comparacao = comparison.comparar_com_referencia(
+                df_referencia, mapeamento_referencia, df_resultado
+            )
+            logger.info("Gerando comparação manual: %s", args.saida_comparacao)
+            comparison.gerar_excel_comparacao(df_comparacao, args.saida_comparacao)
 
         duracao = time.time() - inicio
         logger.info("Concluído em %.1f segundos.", duracao)
