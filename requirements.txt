@@ -4,3 +4,5 @@ xlsxwriter
 rapidfuzz
 unidecode
 pytest
+Flask
+gunicorn

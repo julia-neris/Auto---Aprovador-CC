@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f1f3ef">
+  <title>Aprovadores | Mesa de operação</title>
+  <script>
+    try {
+      const savedTheme = localStorage.getItem('aprovadores-theme');
+      if (savedTheme === 'dark') document.documentElement.dataset.theme = 'dark';
+    } catch (_error) {}
+  </script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Aprovadores, início">
+        <span class="brand-mark">T&E</span>
+        <span class="brand-name">Viagens<span class="brand-dot">.</span></span>
+      </a>
+      <div class="top-meta"><span class="local-led"></span> AMBIENTE LOCAL <span class="meta-divider"></span> OPERAÇÃO SAP</div>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Ativar modo escuro" aria-pressed="false">
+        <svg class="theme-icon theme-icon-light" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18h6M10 22h4M8.5 14.5a7 7 0 1 1 7 0c-.9.6-1.5 1.5-1.5 2.5h-4c0-1-.6-1.9-1.5-2.5Z"/>
+        </svg>
+        <svg class="theme-icon theme-icon-dark" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/>
+        </svg>
+        <span class="theme-label">Escuro</span>
+      </button>
+      <span class="version">PRÉVIA 01</span>
+    </header>
+
+    <main>
+      <section class="intro">
+        <div>
+          <p class="eyebrow">CENTRAL DE PROCESSAMENTO <span> / </span> 01</p>
+          <h1>Atualização dos<br><em>aprovadores de cc</em></h1>
+          <p class="intro-copy">Selecione as bases do ciclo. A automação calcula os aprovadores, compara com a Belvitur e prepara os arquivos para revisão.</p>
+        </div>
+        <div class="intro-stamp"><span class="stamp-number">01</span><span>ENTRADAS<br>DO CICLO</span></div>
+      </section>
+
+      <div class="workspace">
+        <section class="inputs-panel" aria-labelledby="inputs-title">
+          <div class="section-heading">
+            <div><p class="eyebrow">PREPARAÇÃO</p><h2 id="inputs-title">Arquivos de entrada</h2></div>
+            <span class="required-note">3 obrigatórios</span>
+          </div>
+
+          <form id="run-form">
+            <div class="file-grid">
+              <label class="file-slot" data-field="sap">
+                <input type="file" name="sap" accept=".xlsx,.xlsm" required>
+                <span class="slot-index">01 <b>OBRIGATÓRIO</b></span>
+                <span class="slot-title">Base SAP</span>
+                <span class="slot-detail">Centros de custo e níveis N1–N6</span>
+                <span class="file-action"><span class="plus">+</span><span class="file-name">Escolher planilha</span></span>
+              </label>
+              <label class="file-slot" data-field="depara">
+                <input type="file" name="depara" accept=".xlsx,.xlsm" required>
+                <span class="slot-index">02 <b>OBRIGATÓRIO</b></span>
+                <span class="slot-title">DePara</span>
+                <span class="slot-detail">ID SAP, cargo e gestor direto</span>
+                <span class="file-action"><span class="plus">+</span><span class="file-name">Escolher planilha</span></span>
+              </label>
+              <label class="file-slot" data-field="rh">
+                <input type="file" name="rh" accept=".xlsx,.xlsm">
+                <span class="slot-index">03 <b>OPCIONAL</b></span>
+                <span class="slot-title">Base RH</span>
+                <span class="slot-detail">Fallback por nome e atualização DePara</span>
+                <span class="file-action"><span class="plus">+</span><span class="file-name">Escolher planilha</span></span>
+              </label>
+              <label class="file-slot" data-field="belvitur">
+                <input type="file" name="belvitur" accept=".xlsx,.xlsm" required>
+                <span class="slot-index">04 <b>OBRIGATÓRIO</b></span>
+                <span class="slot-title">Arquivo Belvitur</span>
+                <span class="slot-detail">Planilha recebida neste ciclo</span>
+                <span class="file-action"><span class="plus">+</span><span class="file-name">Escolher planilha</span></span>
+              </label>
+            </div>
+
+            <label class="toggle-row">
+              <span class="toggle-copy"><strong>Atualizar DePara pelo RH</strong><small>Atualiza cargo e gestor por CPF antes de processar</small></span>
+              <input type="checkbox" name="atualizar_depara" id="update-depara">
+              <span class="toggle-ui" aria-hidden="true"></span>
+            </label>
+
+            <div class="form-footer">
+              <p class="privacy-note"><span class="lock-mark">●</span> Planilhas processadas localmente neste computador.</p>
+              <button id="run-button" type="submit"><span>Executar automação</span><span class="button-arrow">↗</span></button>
+            </div>
+            <p id="form-error" class="form-error" role="alert" hidden></p>
+          </form>
+        </section>
+
+        <aside class="run-panel" aria-labelledby="run-title">
+          <div class="run-panel-top"><p class="eyebrow">ACOMPANHAMENTO</p><span id="status-pill" class="status-pill idle"><i></i><span>AGUARDANDO</span></span></div>
+          <h2 id="run-title">Execução<br><em>do ciclo</em></h2>
+          <div class="run-rule"></div>
+          <p id="run-message" class="run-message">As etapas e os arquivos de saída aparecem aqui depois que você iniciar.</p>
+          <div class="progress-track"><span id="progress-fill"></span></div>
+          <div class="progress-caption"><span id="progress-label">PRONTO PARA INICIAR</span><span id="elapsed">--:--</span></div>
+
+          <div id="outputs" class="outputs" hidden>
+            <p class="eyebrow">ARQUIVOS GERADOS</p>
+            <a class="output-link" data-kind="belvitur" href="#"><span><b>Planilha Belvitur</b><small>Base atualizada + pendências</small></span><span class="download-arrow">↓</span></a>
+            <a class="output-link" data-kind="auditoria" href="#"><span><b>Auditoria</b><small>Decisões e trilha de análise</small></span><span class="download-arrow">↓</span></a>
+          </div>
+
+          <details class="log-details" id="log-details">
+            <summary><span>Registro da execução</span><span class="chevron">+</span></summary>
+            <pre id="run-log">Aguardando início.</pre>
+          </details>
+          <div class="run-foot"><span class="foot-ring"></span><span>PROCESSAMENTO SEQUENCIAL</span></div>
+        </aside>
+      </div>
+    </main>
+    <footer><span>APROVADORES SAP</span><span>PRÉVIA LOCAL · DADOS NÃO SÃO ENVIADOS</span></footer>
+  </div>
+</body>
+</html>
