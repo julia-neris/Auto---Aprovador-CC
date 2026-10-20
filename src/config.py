@@ -37,6 +37,11 @@ ARQUIVO_DEPARA_PADRAO = os.path.join(PASTA_DADOS, "de_para_cc_aprovadores.xlsx")
 ARQUIVO_BELVITUR_PADRAO = os.path.join(PASTA_DADOS, "belvitur_base_anterior.xlsx")
 ARQUIVO_SAIDA_BELVITUR_PADRAO = os.path.join(PASTA_SAIDA, "belvitur_atualizada.xlsx")
 
+# Excel gerado com os colaboradores encontrados via fallback de RH que
+# ainda não estão cadastrados no de-para (ver `depara.py`). Só é
+# gerado quando há ao menos um colaborador novo a incluir.
+ARQUIVO_SAIDA_DEPARA_NOVOS_PADRAO = os.path.join(PASTA_SAIDA, "depara_novos_colaboradores.xlsx")
+
 PASTA_LOGS = "logs"
 
 
@@ -67,6 +72,7 @@ class Acao:
     ATUALIZAR = "ATUALIZAR APROVADOR CENTRO DE CUSTO"
     INATIVAR = "INATIVAR CENTRO DE CUSTO"
     REVISAR = "REVISAR CENTRO DE CUSTO"
+    INCLUIR = "INCLUIR NOVO CENTRO DE CUSTO"
 
 
 # Texto usado na coluna "Aprovador SAP" quando nenhum candidato válido

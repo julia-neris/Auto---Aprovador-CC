@@ -104,6 +104,15 @@ def _parse_args(argv=None) -> argparse.Namespace:
         help="Caminho do Excel atualizado para a Belvitur a ser gerado (requer --belvitur).",
     )
     parser.add_argument(
+        "--saida-depara-novos",
+        default=config.ARQUIVO_SAIDA_DEPARA_NOVOS_PADRAO,
+        help=(
+            "Caminho do Excel com colaboradores achados via fallback de RH "
+            "e ainda não cadastrados no de-para (requer --rh). Só é "
+            "gerado quando há ao menos um colaborador novo."
+        ),
+    )
+    parser.add_argument(
         "--sheet-sap", default=0, help="Nome ou índice da aba a usar na planilha SAP (padrão: primeira)."
     )
     parser.add_argument(
@@ -218,6 +227,17 @@ def executar(argv=None) -> int:
 
         resolvedor = ResolvedorAprovador(indice_depara, indice_rh_fallback)
 
+        colunas_sap_processamento = [mapeamento_sap.coluna_centro_custo]
+        if mapeamento_sap.coluna_descricao_centro_custo:
+            colunas_sap_processamento.append(
+                mapeamento_sap.coluna_descricao_centro_custo
+            )
+        for nivel in mapeamento_sap.niveis:
+            colunas_sap_processamento.append(nivel.coluna_nome)
+            if nivel.coluna_codigo:
+                colunas_sap_processamento.append(nivel.coluna_codigo)
+        df_sap = df_sap[list(dict.fromkeys(colunas_sap_processamento))]
+
         df_resultado, df_auditoria = processor.processar_base_sap(
             df_sap, mapeamento_sap, resolvedor, logger
         )
@@ -233,6 +253,21 @@ def executar(argv=None) -> int:
 
         logger.info("Gerando Excel de auditoria: %s", args.saida)
         output.gerar_excel_saida(df_resultado, df_auditoria, args.saida)
+
+        if usar_rh:
+            df_novos_colaboradores = depara.identificar_novos_colaboradores(
+                df_resultado, indice_depara
+            )
+            if not df_novos_colaboradores.empty:
+                df_depara_com_novos = depara.adicionar_novos_colaboradores_ao_depara(
+                    df_depara, df_novos_colaboradores, mapeamento_depara, logger
+                )
+                logger.info(
+                    "Gerando Excel de colaboradores novos para o de-para: %s",
+                    args.saida_depara_novos,
+                )
+                os.makedirs(os.path.dirname(args.saida_depara_novos) or ".", exist_ok=True)
+                df_depara_com_novos.to_excel(args.saida_depara_novos, index=False)
 
         if usar_belvitur:
             logger.info("Carregando planilha da Belvitur: %s", args.belvitur)

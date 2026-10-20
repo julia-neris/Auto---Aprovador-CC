@@ -4,10 +4,13 @@ from src.column_mapping import MapeamentoDePara, MapeamentoRH
 from src.depara import IndiceDePara
 from src.matching import IndiceRH
 from src.processor import (
+    EventoAuditoria,
+    ResultadoLinha,
     STATUS_APROVADOR_ENCONTRADO,
     STATUS_CARGO_NAO_ELEGIVEL,
     STATUS_NAO_ENCONTRADO_RH,
     STATUS_SEM_APROVADOR,
+    _dataclasses_para_dataframe,
     _processar_linha,
 )
 from src.resolver import ResolvedorAprovador
@@ -65,6 +68,22 @@ def _processar(resolvedor, valores_por_nivel_nome):
         _processar_linha("CC1", "Centro Teste", valores_por_nivel, resolvedor, eventos),
         eventos,
     )
+
+
+def test_conversao_por_colunas_preserva_dataframe_legado():
+    resultados = [
+        ResultadoLinha("CC1", "Centro 1", STATUS_APROVADOR_ENCONTRADO, "OK", aprovador_nome="Maria"),
+        ResultadoLinha("CC2", None, STATUS_SEM_APROVADOR, "Sem candidato"),
+    ]
+    auditoria = [
+        EventoAuditoria("CC1", "Centro 1", "N1", "123", "Maria", "Maria", "DIRETOR", "EXATO", 100.0, "ALTA", True, "CARGO_ELEGIVEL", True),
+        EventoAuditoria("CC2", None, "N1", "", "", None, None, "-", None, "VAZIO", None, "CANDIDATO_VAZIO", False),
+    ]
+
+    for registros in (resultados, auditoria):
+        legado = pd.DataFrame([registro.__dict__ for registro in registros])
+        otimizado = _dataclasses_para_dataframe(registros)
+        pd.testing.assert_frame_equal(otimizado, legado)
 
 
 def test_1_n1_vazio_n2_diretor_seleciona_n2():

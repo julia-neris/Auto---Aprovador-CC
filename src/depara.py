@@ -158,3 +158,92 @@ def atualizar_depara_com_rh(
     )
 
     return df_depara
+
+
+def identificar_novos_colaboradores(
+    df_resultado: pd.DataFrame,
+    indice_depara: "IndiceDePara",
+) -> pd.DataFrame:
+    """Identifica aprovadores encontrados via fallback de RH (Tier 1
+    do `resolver.py`) que ainda não estão cadastrados na base de-para.
+
+    São candidatos que a automação já sabe resolver hoje (por nome, no
+    RH completo), mas que precisam ser incluídos no de-para para que,
+    nas próximas rodadas, a resolução passe a ser feita direto pelo
+    ID SAP (Tier 0, exata) -- sem depender de fallback.
+
+    Retorna um DataFrame com uma linha por colaborador novo (dedup por
+    ID SAP), pronto para ser usado em `montar_linhas_novos_colaboradores`.
+    Não modifica `df_resultado` nem o de-para original."""
+
+    linhas = df_resultado[
+        (df_resultado["status"] == "APROVADOR_ENCONTRADO")
+        & df_resultado["metodo_match"].fillna("").str.startswith("RH_FALLBACK_")
+    ]
+
+    vistos: set = set()
+    registros = []
+    for _, linha in linhas.iterrows():
+        sap_id = linha["aprovador_sap_id"]
+        if valor_vazio(sap_id):
+            continue
+        chave = normalizar_sap_id(sap_id)
+        if not chave or chave in vistos or indice_depara.buscar_por_sap_id(chave) is not None:
+            continue
+        vistos.add(chave)
+        registros.append(linha)
+
+    return pd.DataFrame(registros) if registros else pd.DataFrame(columns=df_resultado.columns)
+
+
+def montar_linhas_novos_colaboradores(
+    df_novos: pd.DataFrame,
+    mapeamento_depara: MapeamentoDePara,
+) -> pd.DataFrame:
+    """Converte o resultado de `identificar_novos_colaboradores` para o
+    formato de colunas da base de-para, pronto para ser anexado a ela
+    (ou exportado separadamente para revisão manual antes de subir ao
+    SharePoint)."""
+
+    m = mapeamento_depara
+    registros = []
+    for _, linha in df_novos.iterrows():
+        registro = {m.coluna_sap_id: linha["aprovador_sap_id"], m.coluna_cargo: linha["aprovador_cargo"]}
+        if m.coluna_nome_sap:
+            registro[m.coluna_nome_sap] = linha["nome_sap_original"]
+        if m.coluna_nome_rh:
+            registro[m.coluna_nome_rh] = linha["aprovador_nome"]
+        if m.coluna_gestor:
+            registro[m.coluna_gestor] = linha["aprovador_gestor"]
+        if m.coluna_email:
+            registro[m.coluna_email] = linha["aprovador_email"]
+        registros.append(registro)
+
+    return pd.DataFrame(registros)
+
+
+def adicionar_novos_colaboradores_ao_depara(
+    df_depara: pd.DataFrame,
+    df_novos: pd.DataFrame,
+    mapeamento_depara: MapeamentoDePara,
+    logger: logging.Logger,
+) -> pd.DataFrame:
+    """Retorna uma cópia do de-para (in memory) com os colaboradores
+    novos anexados ao final. Colunas do de-para original que não têm
+    equivalente no registro novo (ex.: CPF) ficam em branco -- a
+    inclusão é "melhor esforço", para revisão humana antes de subir a
+    planilha ao SharePoint."""
+
+    if df_novos.empty:
+        return df_depara
+
+    linhas_novas = montar_linhas_novos_colaboradores(df_novos, mapeamento_depara)
+    df_atualizado = pd.concat([df_depara, linhas_novas], ignore_index=True)
+
+    logger.info(
+        "%s colaborador(es) novo(s) (achado(s) via fallback de RH, ainda "
+        "não cadastrado(s) no de-para) incluído(s) para revisão.",
+        f"{len(linhas_novas):,}",
+    )
+
+    return df_atualizado

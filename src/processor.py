@@ -28,7 +28,7 @@ com o status mais adequado (ver `_status_final_sem_sucesso`).
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import List, Optional
 
 import pandas as pd
@@ -83,6 +83,20 @@ class ResultadoLinha:
     score_match: Optional[float] = None
     confianca_match: Optional[str] = None
     observacao: str = ""
+
+
+def _dataclasses_para_dataframe(registros: list) -> pd.DataFrame:
+    """Monta o DataFrame coluna a coluna para evitar uma cópia de
+    dicionário por registro durante a conversão de bases grandes."""
+
+    if not registros:
+        return pd.DataFrame()
+
+    colunas = {
+        campo.name: [getattr(registro, campo.name) for registro in registros]
+        for campo in fields(registros[0])
+    }
+    return pd.DataFrame(colunas)
 
 
 def _status_final_sem_sucesso(eventos_linha: List[EventoAuditoria]) -> tuple[str, str]:
@@ -331,7 +345,9 @@ def processar_base_sap(
                 (posicao / total_linhas) * 100 if total_linhas else 100.0,
             )
 
-    df_resultado = pd.DataFrame([r.__dict__ for r in resultados])
-    df_auditoria = pd.DataFrame([e.__dict__ for e in eventos_auditoria])
+    del df_trabalho
+    df_resultado = _dataclasses_para_dataframe(resultados)
+    del resultados
+    df_auditoria = _dataclasses_para_dataframe(eventos_auditoria)
 
     return df_resultado, df_auditoria

@@ -137,17 +137,59 @@ def reconciliar_com_belvitur(
             COLUNA_ACAO,
         )
 
+    # Centros de Custo que existem no resultado do SAP mas ainda não
+    # existem na planilha da Belvitur (nunca foram entregues antes)
+    # não devem ficar de fora -- são incluídos como linhas novas, com
+    # AÇÃO = INCLUIR, ao final da planilha. Isso é puramente aditivo:
+    # nenhuma linha/ação já calculada acima é alterada.
+    chaves_ja_na_belvitur = {
+        _normalizar_chave_centro_custo(df_saida.iloc[posicao][mapeamento_belvitur.coluna_centro_custo])
+        for posicao in range(len(df_saida))
+    }
+
+    linhas_novos_ccs = []
+    for _, linha_resultado in df_resultado.iterrows():
+        chave = _normalizar_chave_centro_custo(linha_resultado["centro_custo"])
+        if not chave or chave in chaves_ja_na_belvitur:
+            continue
+        chaves_ja_na_belvitur.add(chave)
+
+        nova_linha = {coluna: pd.NA for coluna in df_saida.columns}
+        nova_linha[mapeamento_belvitur.coluna_centro_custo] = linha_resultado["centro_custo"]
+
+        if linha_resultado["status"] == STATUS_APROVADOR_ENCONTRADO:
+            nova_linha[COLUNA_APROVADOR_SAP] = linha_resultado["aprovador_nome"]
+        else:
+            nova_linha[COLUNA_APROVADOR_SAP] = TEXTO_INATIVAR_APROVADOR
+        nova_linha[COLUNA_ACAO] = Acao.INCLUIR
+        nova_linha[COLUNA_APROVADOR_DO_APROVADOR] = None
+
+        linhas_novos_ccs.append(nova_linha)
+
+    if linhas_novos_ccs:
+        df_saida = pd.concat(
+            [df_saida, pd.DataFrame(linhas_novos_ccs)], ignore_index=True
+        )
+        logger.info(
+            "%s Centro(s) de Custo novo(s) (sem histórico na planilha da "
+            "Belvitur) incluído(s) com AÇÃO = '%s'.",
+            f"{len(linhas_novos_ccs):,}",
+            Acao.INCLUIR,
+        )
+
     total_atualizar = (df_saida[COLUNA_ACAO] == Acao.ATUALIZAR).sum()
     total_inativar = (df_saida[COLUNA_ACAO] == Acao.INATIVAR).sum()
     total_manter = (df_saida[COLUNA_ACAO] == Acao.MANTER).sum()
     total_revisar = (df_saida[COLUNA_ACAO] == Acao.REVISAR).sum()
+    total_incluir = (df_saida[COLUNA_ACAO] == Acao.INCLUIR).sum()
     logger.info(
         "Reconciliação com a Belvitur: %s linha(s) para ATUALIZAR, %s "
-        "para INATIVAR, %s para MANTER, %s para REVISAR.",
+        "para INATIVAR, %s para MANTER, %s para REVISAR, %s para INCLUIR.",
         f"{total_atualizar:,}",
         f"{total_inativar:,}",
         f"{total_manter:,}",
         f"{total_revisar:,}",
+        f"{total_incluir:,}",
     )
 
     return df_saida
@@ -159,7 +201,7 @@ def gerar_excel_belvitur(df_saida: pd.DataFrame, caminho_saida: str) -> None:
     aba "ATUALIZAR" apenas com as linhas que exigem ação."""
 
     df_atualizar = df_saida[
-        df_saida[COLUNA_ACAO].isin((Acao.ATUALIZAR, Acao.INATIVAR))
+        df_saida[COLUNA_ACAO].isin((Acao.ATUALIZAR, Acao.INATIVAR, Acao.INCLUIR))
     ].copy()
 
     with pd.ExcelWriter(caminho_saida, engine="openpyxl") as writer:

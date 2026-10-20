@@ -8,6 +8,7 @@ import sys
 import tempfile
 import threading
 import uuid
+import webbrowser
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
@@ -231,4 +232,7 @@ def too_large(_error):
 
 if __name__ == "__main__":
     RUN_ROOT.mkdir(parents=True, exist_ok=True)
-    app.run(host="127.0.0.1", port=int(os.environ.get("PORT", "5055")), debug=False, threaded=True)
+    port = int(os.environ.get("PORT", "5055"))
+    if os.environ.get("APROVADORES_OPEN_BROWSER") == "1":
+        threading.Timer(1.0, webbrowser.open, args=(f"http://127.0.0.1:{port}",)).start()
+    app.run(host="127.0.0.1", port=port, debug=False, threaded=True)

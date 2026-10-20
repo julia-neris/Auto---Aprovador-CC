@@ -1,0 +1,22 @@
+AUTOMACAO DE APROVADORES - APLICACAO LOCAL
+
+O processamento e feito neste computador. As planilhas nao sao enviadas para um servidor externo.
+
+PRIMEIRO USO
+1. Extraia a pasta aprovadores-local de um canal de compartilhamento aprovado pela empresa.
+2. Abra a pasta extraida no Explorador de Arquivos.
+3. Clique com o botao direito em abrir_aplicacao.ps1 e escolha Executar com PowerShell.
+4. Na primeira execucao, o script cria um ambiente Python dentro desta pasta e instala as dependencias. Isso requer Python 3 e acesso ao repositorio de pacotes aprovado pela empresa.
+5. A pagina abre no navegador. Se nao abrir automaticamente, copie o endereco http://127.0.0.1:PORTA mostrado na janela PowerShell.
+6. Selecione as planilhas locais e execute o processo.
+
+USOS SEGUINTES
+Execute abrir_aplicacao.ps1 novamente. As dependencias nao serao reinstaladas enquanto requirements.txt nao mudar.
+
+ENCERRAR
+Feche a janela PowerShell para parar o servidor local. A aplicacao so aceita conexoes deste computador (127.0.0.1).
+
+SEGURANCA E SUPORTE
+- Use apenas arquivos e canais autorizados pela empresa.
+- Nao publique a pasta em sites, GitHub publico, Vercel ou outros servicos externos.
+- Se o Windows bloquear scripts, ou se Python/pip nao estiverem disponiveis, pare e solicite a disponibilizacao do pacote pela TI. Nao tente contornar as politicas do dispositivo.

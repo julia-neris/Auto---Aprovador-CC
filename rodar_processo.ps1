@@ -18,25 +18,25 @@
 # ============================================================
 
 # Planilha extraída do SAP (Centro de Custo + candidatos N1..N6).
-$Sap = "C:\Users\julia.neris\Downloads\teste - aprovadores 22.09\base sap.xlsx"
+$Sap = "C:\Users\julia.neris\Downloads\aprovadores 01.10.26\ZMM_APROVADORES_01.10.26-.xlsx"
 
 # Planilha "de-para" do SharePoint (ID SAP -> Cargo/Gestor).
-$Depara = "C:\Users\julia.neris\Downloads\teste - aprovadores 22.09\de para CC - Aprovadores - 21;09.xlsx"
+$Depara = "C:\Users\julia.neris\Downloads\para fazer 23.09 - aprovador cc\de para CC - Aprovadores - ATUALIZAR NO SHARE POINT ONLINE.xlsx"
 
 # Base de RH completa. É usada como fallback quando o ID SAP não está
 # cadastrado no de-para.
-$Rh = "C:\Users\julia.neris\Downloads\teste - aprovadores 22.09\BASE ATIVOS_DP 21.09 - RH.xlsx"
+$Rh = "C:\Users\julia.neris\Downloads\ativos 02.10.xlsx"
 
 # Planilha enviada pela Belvitur neste ciclo. Troque este caminho a cada rodada.
-$Belvitur = "C:\Users\julia.neris\Downloads\teste - aprovadores 22.09\base que devolvemos para a belvitur - Copia.xlsx"
+$Belvitur = "C:\Users\julia.neris\Downloads\aprovadores 01.10.26\Dados AEGEA - belvitur centro de custo.xlsx"
 
 # Se quiser atualizar Cargo/Gestor do de-para a partir do RH (via CPF)
 # antes de processar, deixe $true. Requer $Rh preenchido.
-$AtualizarDePara = $null
+$AtualizarDePara = $true
 
 # Nomes dos Excels de saída (a pasta "dados_saida" é criada se não existir).
-$SaidaAuditoria = "dados_saida\auditoria.xlsx"
-$SaidaBelvitur  = "dados_saida\belvitur_atualizada.xlsx"
+$SaidaAuditoria = "dados_saida\aprovador 06.10_auditoria_true.xlsx"
+$SaidaBelvitur  = "dados_saida\aprovador 06.10_belvitur_true.xlsx"
 
 # ============================================================
 # NÃO PRECISA MEXER DAQUI PARA BAIXO
@@ -79,10 +79,14 @@ $codigoSaida = $LASTEXITCODE
 
 if ($codigoSaida -eq 0) {
     Write-Host ""
-    Write-Host "Concluído com sucesso." -ForegroundColor Green
+    Write-Host "Concluido com sucesso." -ForegroundColor Green
     Write-Host "Excel de auditoria: $SaidaAuditoria"
     if ($Belvitur) {
         Write-Host "Excel para a Belvitur: $SaidaBelvitur"
+    }
+    $SaidaDeparaNovos = "dados_saida\depara_novos_colaboradores.xlsx"
+    if ($Rh -and (Test-Path $SaidaDeparaNovos)) {
+        Write-Host "Colaboradores novos para incluir no de-para: $SaidaDeparaNovos"
     }
 } else {
     Write-Host ""

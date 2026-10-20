@@ -1,29 +1,21 @@
-# Local Web Preview
+# Aplicação Local por Usuário
 
-Install the project dependencies in the existing virtual environment:
+Cada pessoa executa a aplicação e o motor Python no próprio computador. As planilhas não são transmitidas para hospedagem pública. O servidor escuta somente no endereço local `127.0.0.1`.
 
-```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-```
-
-Start the local web interface from the project root:
+Para preparar um pacote sem dados de entrada, sem resultados e sem histórico Git, execute na raiz do projeto:
 
 ```powershell
-.\.venv\Scripts\python.exe -m web.app
+.\preparar_pacote.ps1
 ```
 
-Open http://127.0.0.1:5055. The server binds to loopback only. Uploaded spreadsheets and generated files stay in a temporary folder on this computer; the existing `src.main` automation performs the calculations unchanged.
+Isso gera `dist\aprovadores-local.zip`. Antes de enviar, a pessoa responsável deve verificar que o canal de distribuição é aprovado pela empresa. Não use o repositório Git como método de instalação para colegas: o histórico antigo não faz parte do ZIP, mas ainda existe no remoto.
 
-## Render Test Deployment
+O arquivo `dist\aprovadores-local.zip` pode ser distribuído apenas por um canal aprovado pela empresa. Cada usuário extrai o pacote e executa `abrir_aplicacao.ps1`. Na primeira execução, o script cria `.venv` na pasta do usuário e instala `requirements.txt`; isso requer Python 3 e acesso ao repositório de pacotes aprovado pela empresa. Execuções seguintes reutilizam o ambiente. Fechar a janela PowerShell encerra o servidor.
 
-Render is the intended host for a first online test: the automation runs for several minutes and needs a persistent Python process. Vercel's serverless request lifecycle is not a good fit for the current long-running subprocess workflow.
+Se a política do Windows bloquear scripts, ou Python/pip não estiverem disponíveis, solicite à TI um método aprovado de disponibilização. Não altere políticas nem tente contorná-las.
 
-1. Push the app code and `render.yaml` to a GitHub branch. Do not add spreadsheets, logs, `.venv`, generated output, or local workbook paths.
-2. In Render, choose **New > Blueprint** and connect the GitHub repository and branch.
-3. Review the `aprovadores-cc` web service from `render.yaml` and create it.
-4. In the service's **Environment** settings, set `WEB_USERNAME` and `WEB_PASSWORD` to unique credentials. Render will request values for variables marked `sync: false`. Do not put credentials in Git or chat.
-5. Wait for the deployment, open the `onrender.com` URL, and sign in when the browser asks. Start with non-sensitive test workbooks.
+O empacotador inclui somente `src`, `web`, `requirements.txt`, o inicializador e as instruções. Ele não inclui `.git`, planilhas, logs ou os resultados produzidos. Mesmo assim, confira o conteúdo do ZIP antes de compartilhá-lo.
 
-The deployment uses one web instance because job state and downloads are held in memory and temporary disk. Restarting or redeploying clears active job state and generated files. This prototype has no durable job history, automatic cleanup policy, or organization SSO. Basic authentication is a test gate, not approval to process employee data in a public cloud. Confirm the organization's data-protection requirements before uploading real SAP/RH files.
+## Hospedagem Pública
 
-The local server remains at http://127.0.0.1:5055 and does not require credentials unless `APP_ENV=production` is set.
+Não publique esta aplicação nem envie planilhas SAP/RH para Vercel, Render ou outro provedor sem autorização explícita da empresa. O Vercel Hobby também limita execução e tamanho de requisição abaixo do necessário para os ciclos reais. O arquivo `render.yaml` é apenas uma configuração histórica de teste e não faz parte do fluxo local recomendado.

@@ -53,3 +53,45 @@ def test_sem_aprovador_marca_inativar_mesmo_se_ja_estiver_vazio():
 
     assert saida.loc[0, COLUNA_ACAO] == Acao.INATIVAR
     assert saida.loc[0, COLUNA_APROVADOR_SAP] == "INATIVAR"
+
+
+def test_centro_custo_novo_e_incluido_com_acao_incluir():
+    entrada = pd.DataFrame({"codigoCentroCusto": ["CC1"], "Aprovador": ["Maria Souza"]})
+    resultado = pd.concat(
+        [
+            _resultado("CC1", "APROVADOR_ENCONTRADO", "MARIA SOUZA"),
+            _resultado("CC2", "APROVADOR_ENCONTRADO", "JOAO SILVA"),
+        ],
+        ignore_index=True,
+    )
+
+    saida = reconciliar_com_belvitur(
+        entrada, MAPEAMENTO, resultado, logging.getLogger("test")
+    )
+
+    assert len(saida) == 2
+    linha_nova = saida[saida["codigoCentroCusto"] == "CC2"].iloc[0]
+    assert linha_nova[COLUNA_ACAO] == Acao.INCLUIR
+    assert linha_nova[COLUNA_APROVADOR_SAP] == "JOAO SILVA"
+    # a linha já existente não é afetada pela inclusão do CC novo.
+    linha_existente = saida[saida["codigoCentroCusto"] == "CC1"].iloc[0]
+    assert linha_existente[COLUNA_ACAO] == Acao.MANTER
+
+
+def test_centro_custo_novo_sem_aprovador_ainda_e_incluido():
+    entrada = pd.DataFrame({"codigoCentroCusto": ["CC1"], "Aprovador": ["Maria Souza"]})
+    resultado = pd.concat(
+        [
+            _resultado("CC1", "APROVADOR_ENCONTRADO", "MARIA SOUZA"),
+            _resultado("CC2", "SEM_APROVADOR"),
+        ],
+        ignore_index=True,
+    )
+
+    saida = reconciliar_com_belvitur(
+        entrada, MAPEAMENTO, resultado, logging.getLogger("test")
+    )
+
+    linha_nova = saida[saida["codigoCentroCusto"] == "CC2"].iloc[0]
+    assert linha_nova[COLUNA_ACAO] == Acao.INCLUIR
+    assert linha_nova[COLUNA_APROVADOR_SAP] == "INATIVAR"
