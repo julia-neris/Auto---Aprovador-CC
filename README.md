@@ -32,7 +32,7 @@ novo_aprovadores/
 ├── src/
 │   ├── main.py               # CLI e orquestração do fluxo completo
 │   ├── config.py             # limiares de matching, cargos elegíveis, caminhos padrão
-│   ├── column_mapping.py     # detecção flexível de colunas (SAP, de-para, RH, Belvitur)
+│   ├── column_mapping.py     # detecção flexível de colunas (SAP, de-para, RH)
 │   ├── normalization.py      # normalização de nomes (acentos, espaços, maiúsculas...)
 │   ├── matching.py           # índice do RH + estratégia de matching de nomes
 │   ├── depara.py             # índice do de-para (Tier 0) + atualização via RH/CPF
@@ -41,7 +41,7 @@ novo_aprovadores/
 │   ├── processor.py          # percorre N1..N3 e decide o primeiro aprovador elegível
 │   ├── validators.py         # validação de qualidade das bases antes de processar
 │   ├── output.py             # geração do Excel de auditoria
-│   ├── belvitur.py           # reconciliação com a planilha da Belvitur
+│   ├── belvitur.py           # reconciliação com a planilha
 │   └── logging_utils.py      # configuração de log
 ├── tests/                    # testes automatizados (pytest)
 └── dados_saida/              # saída padrão dos Excels gerados (não versionado)
